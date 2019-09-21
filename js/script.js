@@ -25,7 +25,9 @@ To do list:
 * 0. Global variables
 */
 const appWrapper = document.querySelector('.page');
+const pageHeader = document.querySelector('.page-header');
 const list = document.querySelectorAll('.student-list > li');
+const names = document.querySelectorAll('.student-list > li h3');
 const itemsPerPage = 10;
 const numberPages = Math.ceil(list.length / itemsPerPage);
 
@@ -154,7 +156,37 @@ const appendPageLinks = (list) => {
 
 
 /**
-* 4. Run our program on page load
+* 4. Append Search
+*/
+const appendSearch = () => {
+   const searchWrapper = createElement('div', pageHeader, {
+      className: 'student-search'
+   });
+   const searchInput = createElement('input', searchWrapper, {
+      placeholder: 'Search for students...'
+   });
+   const searchButton = createElement('button', searchWrapper);
+   searchButton.textContent = 'Search';
+
+   searchWrapper.addEventListener('keyup', e => {
+      let searchText = searchInput.value;
+      
+      for (let i = 0; i < names.length; i++ ) {
+         let li = names[i].parentNode.parentNode; 
+
+         if (names[i].textContent.includes(searchInput.value) ) {
+            li.style.display = '';
+         }else {
+            li.style.display = 'none';
+         }
+      }
+   });
+};
+
+
+/**
+* 5. Run our program on page load
 */
 showPage(list, defaultPage);
 appendPageLinks(list);
+appendSearch();

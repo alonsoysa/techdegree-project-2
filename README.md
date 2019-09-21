@@ -1,2 +1,2 @@
 # techdegree-project-2
- List Pagination and Filtering
+School Project: List Pagination and Filtering

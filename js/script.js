@@ -26,13 +26,13 @@ To do list:
 */
 const appWrapper = document.querySelector('.page');
 const pageHeader = document.querySelector('.page-header');
-const list = document.querySelectorAll('.student-list > li');
+const listOriginal = document.querySelectorAll('.student-list > li');
 const names = document.querySelectorAll('.student-list > li h3');
 const itemsPerPage = 10;
-const numberPages = Math.ceil(list.length / itemsPerPage);
 
 // using let because I plan on making this dynamic in the future.
 let defaultPage = 1; 
+let searchList = [];
 
 
 /**
@@ -41,17 +41,22 @@ let defaultPage = 1;
 *     - list = object
 *     - currentPage = integer
 */
+const hideList = () => {
+   for (let i = 0; i < listOriginal.length; i++) {
+      listOriginal[i].style.display = 'none';
+   }
+};
 const showPage = (list, currentPage) => {
    // Define where to start and end the pagination
    const toItem = currentPage * itemsPerPage; 
    const fromItem = toItem - itemsPerPage;
+   
+   hideList();
 
    // Toggles display
    for (let i = 0; i < list.length; i++) {
       if (i >= fromItem && i < toItem) {
          list[i].style.display = '';
-      } else {
-         list[i].style.display = 'none';
       }
    }
 };
@@ -113,6 +118,11 @@ const appendPageLinks = (list) => {
       });
    };
 
+   // Remove Pagination
+   if (document.contains( document.querySelector('.pagination') ) ) {
+      document.querySelector('.pagination').remove();
+   }
+
    // Create Pagination wrapper and add it to the appWrapper
    const paginationWrapper = createElement('div', appWrapper, {
       className: 'pagination'
@@ -122,6 +132,7 @@ const appendPageLinks = (list) => {
    const paginationGroup = createElement('ul', paginationWrapper);
 
    // Create pagination items and add it to the paginationGroup
+   const numberPages = Math.ceil(list.length / itemsPerPage);
    for(let i = 1; i <= numberPages; i++) {
       createPaginationItem(i, paginationGroup);
    }
@@ -157,6 +168,8 @@ const appendPageLinks = (list) => {
 
 /**
 * 4. Append Search
+* Research from:
+* https://stackoverflow.com/a/1909490
 */
 const appendSearch = () => {
    const searchWrapper = createElement('div', pageHeader, {
@@ -168,18 +181,34 @@ const appendSearch = () => {
    const searchButton = createElement('button', searchWrapper);
    searchButton.textContent = 'Search';
 
-   searchWrapper.addEventListener('keyup', e => {
-      let searchText = searchInput.value;
-      
-      for (let i = 0; i < names.length; i++ ) {
-         let li = names[i].parentNode.parentNode; 
+   let globalTimeout = null; 
 
-         if (names[i].textContent.includes(searchInput.value) ) {
-            li.style.display = '';
-         }else {
-            li.style.display = 'none';
-         }
+   searchWrapper.addEventListener('keyup', e => {
+      if (globalTimeout != null) {
+         clearTimeout(globalTimeout);
       }
+
+      globalTimeout = setTimeout( () => { 
+         globalTimeout = null;
+         let searchText = searchInput.value;
+
+         // clear array
+         searchList.length = 0;
+
+         for (let i = 0; i < names.length; i++) {
+            let keyword = searchInput.value;
+            let studentName = names[i].textContent;
+
+            if (studentName.includes(keyword)) {
+               let li = names[i].parentNode.parentNode;
+               searchList.push(li);
+            }
+         }
+
+         showPage(searchList, defaultPage);
+         appendPageLinks(searchList);
+         console.log('finished search');
+      }, 1000);
    });
 };
 
@@ -187,6 +216,6 @@ const appendSearch = () => {
 /**
 * 5. Run our program on page load
 */
-showPage(list, defaultPage);
-appendPageLinks(list);
+showPage(listOriginal, defaultPage);
+appendPageLinks(listOriginal);
 appendSearch();

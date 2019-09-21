@@ -1,57 +1,53 @@
 /******************************************
-Treehouse Techdegree:
-FSJS project 2 - List Filter and Pagination
+Treehouse FSJS Techdegree:
+project 1 - List Filter and Pagination
+
+To do list:
+  Meets Expectations
+    [C] Project contains only plain "vanilla" JavaScript and doesn't rely on jQuery, some other library, or any code snippets or plugins
+    [C] No inline JavaScript. All JS is linked from an external file
+    [C] Uses unobtrusive JavaScript to append markup for the pagination links. So none of the pagination link's markup is added into the HTML.
+    [C] Pagination links are created. If there are 44 students, 5 links should be generated, if there’s 64 students, 7 links should be generated. Etc.
+    [C] The first 10 students are shown when the page loads, and each pagination link displays the correct students.
+    [C] Clicking on “1” in the pagination links should show students 1 to 10. Clicking “2” shows 11 to 20. Clicking “5” shows students 41 to 50, and so on.
+    [C] Code comments have been added explaining how the functions work.
+
+
+0. Global variables
+1. Show Page
+2. Create Element
+3. Append Page Links
+4. Run our program on page load
+
 ******************************************/
-   
-// Study guide for this project - https://drive.google.com/file/d/1OD1diUsTMdpfMDv677TfL1xO2CEkykSz/view?usp=sharing
 
-
-/*** 
-   Add your global variables that store the DOM elements you will 
-   need to reference and/or manipulate. 
-   
-   But be mindful of which variables should be global and which 
-   should be locally scoped to one of the two main functions you're 
-   going to create. A good general rule of thumb is if the variable 
-   will only be used inside of a function, then it can be locally 
-   scoped to that function.
-***/
+/**
+* 0. Global variables
+*/
 const appWrapper = document.querySelector('.page');
 const list = document.querySelectorAll('.student-list > li');
 const itemsPerPage = 10;
-let defaultPage = 2;
+const numberPages = Math.ceil(list.length / itemsPerPage);
 
-/*** 
-   Create the `showPage` function to hide all of the items in the 
-   list except for the ten you want to show.
+// using let because I plan on making this dynamic in the future.
+let defaultPage = 1; 
 
-   Pro Tips: 
-     - Keep in mind that with a list of 54 students, the last page 
-       will only display four.
-     - Remember that the first student has an index of 0.
-     - Remember that a function `parameter` goes in the parens when 
-       you initially define the function, and it acts as a variable 
-       or a placeholder to represent the actual function `argument` 
-       that will be passed into the parens later when you call or 
-       "invoke" the function 
-***/
+
+/**
+* 1. Show Page
+*     - Shows the active list items and hides the rest
+*     - list = object
+*     - currentPage = integer
+*/
 const showPage = (list, currentPage) => {
-   /*Loop over items in the list parameter
-   --If the index of a list item is >= the index of the first
-   item that should be shown on the currentPage
-   -- && the list item index is <= the index of the last item
-   that should be shown on the currentPage, show it
-      */
-   const toItem = currentPage * itemsPerPage;
+   // Define where to start and end the pagination
+   const toItem = currentPage * itemsPerPage; 
    const fromItem = toItem - itemsPerPage;
-   console.log('starts at : ' + fromItem);
-   console.log('ends at : ' + toItem);
 
-
+   // Toggles display
    for (let i = 0; i < list.length; i++) {
       if (i >= fromItem && i < toItem) {
          list[i].style.display = '';
-         console.log(i)
       } else {
          list[i].style.display = 'none';
       }
@@ -59,72 +55,106 @@ const showPage = (list, currentPage) => {
 };
 
 
-/*** 
-   Create the `appendPageLinks function` to generate, append, and add 
-   functionality to the pagination buttons.
-***/
+/**
+* 2. Create Element
+* - Creates an html element
+*     - elementName = the tagname of the element
+*     - appendTo = a parent element to append to (optional)
+*     - properties = object of properties such as class, href, etc (optional)
+*
+* - Research from: 
+*     A. loops through properties and attaches a property with its value
+*        https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for...in
+*/
+const createElement = (elementName, appendTo, properties) => {
+   const element = document.createElement(elementName);
 
-const appendPageLinks = (list) => {
-   /*
-   1. Determine how many pages are needed for the list by dividing the
-   total number of list items by the max number of items per page
-   2. Create a div, give it the “pagination” class, and append it to the .page div
-   3. Add a ul to the “pagination” div to store the pagination links
-   4. for every page, add li and a tags with the page number text
-   5. Add an event listener to each a tag. When they are clicked
-   call the showPage function to display the appropriate page
-   6. Loop over pagination links to remove active class from all links
-   7. Add the active class to the link that was just clicked. You can identify that
-   clicked link using event.target
-   */
-
-   const numberPages = Math.ceil( list.length / itemsPerPage );
-   const div = document.createElement('div');
-   div.className = 'pagination';
-   
-   const ul = document.createElement('ul');
-
-   div.appendChild(ul);
-
-   for(let i = 1; i <= numberPages; i++) {
-      const li = document.createElement('li');
-      const a = document.createElement('a');
-      a.textContent = i;
-      a.href = '#' + i;
-
-      if (defaultPage === i) {
-         a.className = 'active';
+   // A
+   if (properties) {
+      for (let i in properties) {
+         element[i] = properties[i];
       }
-
-      li.appendChild(a);
-      ul.appendChild(li);
    }
 
-   appWrapper.appendChild(div);
+   // Attach to a parent element
+   if (appendTo) {
+      appendTo.appendChild(element);
+   }
+
+   return element;
+};
 
 
-   div.addEventListener('click', (e) => {
+/**
+* 3. Append Page Links
+* - Attaches pagination functionality to the page.
+*     - list = object of list elements
+*/
+const appendPageLinks = (list) => {
+   /**
+   * Create Pagination Item
+   * - Builds markup for li and a elements
+   * 
+   * Research : 
+   *     A. I'm using a ternary operator for the className property.
+   *        I've used this before in PHP.
+   *        https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Conditional_Operator
+   */
+   const createPaginationItem = (index, parent) => {
+      const li = createElement('li', parent);
+
+      // A
+      const a = createElement('a', li, {
+         textContent: index,
+         href: '#',
+         className: (defaultPage === index) ? 'active' : ''
+      });
+   };
+
+   // Create Pagination wrapper and add it to the appWrapper
+   const paginationWrapper = createElement('div', appWrapper, {
+      className: 'pagination'
+   });
+
+   // Create group wrapper and add it to the paginationWrapper
+   const paginationGroup = createElement('ul', paginationWrapper);
+
+   // Create pagination items and add it to the paginationGroup
+   for(let i = 1; i <= numberPages; i++) {
+      createPaginationItem(i, paginationGroup);
+   }
+
+   // paginationWrapper triggers
+   paginationWrapper.addEventListener('click', (e) => {
+
+      // link trigger
       if( e.target.tagName === 'A' ){
-         const link = e.target; 
-         const page = parseInt(link.hash.substr(1) );
-         console.log(page);
+         // prevent page reload
+         e.preventDefault();
 
+         // select future old active link
          const activePagination = document.querySelector('.active');
+         
+         // select new link element
+         const link = e.target; 
+         const page = link.textContent;
+
+         // remove old active link
          activePagination.classList.remove('active');
 
+         // add active class to new link
          link.classList.add('active');
          
+         // display the new page
          showPage(list, page );
       }
       
    });
-
 };
 
+
+/**
+* 4. Run our program on page load
+*/
 showPage(list, defaultPage);
 appendPageLinks(list);
-
-
-
-
-// Remember to delete the comments that came with this file, and replace them with your own code comments.

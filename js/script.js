@@ -19,7 +19,7 @@ FSJS project 2 - List Filter and Pagination
 const appWrapper = document.querySelector('.page');
 const list = document.querySelectorAll('.student-list > li');
 const itemsPerPage = 10;
-console.log(list.length);
+let defaultPage = 2;
 
 /*** 
    Create the `showPage` function to hide all of the items in the 
@@ -42,11 +42,16 @@ const showPage = (list, currentPage) => {
    -- && the list item index is <= the index of the last item
    that should be shown on the currentPage, show it
       */
-   
-   for (let i = 1; i < list.length; i++) {
-      const allowedPages = currentPage * itemsPerPage;
-      if (i >= currentPage && i <= allowedPages) {
+   const toItem = currentPage * itemsPerPage;
+   const fromItem = toItem - itemsPerPage;
+   console.log('starts at : ' + fromItem);
+   console.log('ends at : ' + toItem);
+
+
+   for (let i = 0; i < list.length; i++) {
+      if (i >= fromItem && i < toItem) {
          list[i].style.display = '';
+         console.log(i)
       } else {
          list[i].style.display = 'none';
       }
@@ -74,7 +79,6 @@ const appendPageLinks = (list) => {
    */
 
    const numberPages = Math.ceil( list.length / itemsPerPage );
-
    const div = document.createElement('div');
    div.className = 'pagination';
    
@@ -82,11 +86,16 @@ const appendPageLinks = (list) => {
 
    div.appendChild(ul);
 
-   for(let i = 1; i < numberPages; i++) {
+   for(let i = 1; i <= numberPages; i++) {
       const li = document.createElement('li');
       const a = document.createElement('a');
       a.textContent = i;
       a.href = '#' + i;
+
+      if (defaultPage === i) {
+         a.className = 'active';
+      }
+
       li.appendChild(a);
       ul.appendChild(li);
    }
@@ -96,8 +105,15 @@ const appendPageLinks = (list) => {
 
    div.addEventListener('click', (e) => {
       if( e.target.tagName === 'A' ){
-         const page = parseInt( e.target.hash.substr(1) );
+         const link = e.target; 
+         const page = parseInt(link.hash.substr(1) );
          console.log(page);
+
+         const activePagination = document.querySelector('.active');
+         activePagination.classList.remove('active');
+
+         link.classList.add('active');
+         
          showPage(list, page );
       }
       
@@ -105,7 +121,7 @@ const appendPageLinks = (list) => {
 
 };
 
-showPage(list, 1);
+showPage(list, defaultPage);
 appendPageLinks(list);
 
 

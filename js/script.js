@@ -3,21 +3,29 @@ Treehouse FSJS Techdegree:
 project 1 - List Filter and Pagination
 
 To do list:
-  Meets Expectations
-    [C] Project contains only plain "vanilla" JavaScript and doesn't rely on jQuery, some other library, or any code snippets or plugins
-    [C] No inline JavaScript. All JS is linked from an external file
-    [C] Uses unobtrusive JavaScript to append markup for the pagination links. So none of the pagination link's markup is added into the HTML.
-    [C] Pagination links are created. If there are 44 students, 5 links should be generated, if there’s 64 students, 7 links should be generated. Etc.
-    [C] The first 10 students are shown when the page loads, and each pagination link displays the correct students.
-    [C] Clicking on “1” in the pagination links should show students 1 to 10. Clicking “2” shows 11 to 20. Clicking “5” shows students 41 to 50, and so on.
-    [C] Code comments have been added explaining how the functions work.
+   Meets Expectations
+      [C] Project contains only plain "vanilla" JavaScript and doesn't rely on jQuery, some other library, or any code snippets or plugins
+      [C] No inline JavaScript. All JS is linked from an external file
+      [C] Uses unobtrusive JavaScript to append markup for the pagination links. So none of the pagination link's markup is added into the HTML.
+      [C] Pagination links are created. If there are 44 students, 5 links should be generated, if there’s 64 students, 7 links should be generated. Etc.
+      [C] The first 10 students are shown when the page loads, and each pagination link displays the correct students.
+      [C] Clicking on “1” in the pagination links should show students 1 to 10. Clicking “2” shows 11 to 20. Clicking “5” shows students 41 to 50, and so on.
+      [C] Code comments have been added explaining how the functions work.
+
+   Exceeds Expectations
+      [C] Use unobtrusive JavaScript to append HTML for a search bar.
+      [C] Pagination links display based on how many search results are returned. For example: if 10 or fewer results are returned, 0 or 1 pagination links are displayed. If 22 search results are returned, 3 pagination links are displayed.
+      [C] When a search yields 0 results, a message is displayed on the page, informing the user that no results have been found.
 
 
 0. Global variables
-1. Show Page
-2. Create Element
-3. Append Page Links
-4. Run our program on page load
+1. Create Element
+2. Build no results
+3. Hide List
+4. Show Page
+5. Append Page Links
+6. Append Search
+7. Run our program on page load
 
 ******************************************/
 
@@ -36,20 +44,19 @@ let searchList = [];
 let noResults;
 
 
-
-
 /**
-* 2. Create Element
+* 1. Create Element
 * - Creates an html element
 *     - elementName = the tagname of the element
 *     - appendTo = a parent element to append to (optional)
+*     - textContent = a string for the text name (optional)
 *     - properties = object of properties such as class, href, etc (optional)
 *
 * - Research from: 
 *     A. loops through properties and attaches a property with its value
 *        https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for...in
 */
-const createElement = (elementName, appendTo, properties) => {
+const createElement = (elementName, appendTo, textContent, properties) => {
    const element = document.createElement(elementName);
 
    // A
@@ -58,8 +65,13 @@ const createElement = (elementName, appendTo, properties) => {
          element[i] = properties[i];
       }
    }
+   
+   // if available add text content
+   if (textContent) {
+      element.textContent = textContent;
+   }
 
-   // Attach to a parent element
+   // if possible attach to a parent element
    if (appendTo) {
       appendTo.appendChild(element);
    }
@@ -68,41 +80,53 @@ const createElement = (elementName, appendTo, properties) => {
 };
 
 
+/**
+* 2. Build no results
+*     - Markup for when no results are available
+*/
 const buildNoResults= () => {
-   noResults = createElement('div', appWrapper, {
+   noResults = createElement('div', appWrapper, false, {
       className: 'no-results'
    });
    noResults.style.display = 'none';
-   const heading = createElement('h2', noResults);
-   heading.textContent = 'No Results';
+
+   const heading = createElement('h2', noResults, 'No Results');
 };
 
-buildNoResults();
 
 /**
-* 1. Show Page
-*     - Shows the active list items and hides the rest
-*     - list = object
-*     - currentPage = integer
+* 3. Hide List
+*     - Hides every list item by default
 */
 const hideList = () => {
    for (let i = 0; i < listOriginal.length; i++) {
       listOriginal[i].style.display = 'none';
    }
 };
+
+
+/**
+* 4. Show Page
+*     - Shows the active list items and hides the rest
+*     - list = object
+*     - currentPage = integer
+*/
 const showPage = (list, currentPage) => {
+   // first hide all lists items
+   hideList();
+
    // Define where to start and end the pagination
    const toItem = currentPage * itemsPerPage; 
    const fromItem = toItem - itemsPerPage;
-   
-   hideList();
 
+   // If no results, display the no results div
    if( list.length === 0) {
       noResults.style.display = '';
-   }else {
-      // Toggles display
+   } else {
+      // hide no results div
       noResults.style.display = 'none';
 
+      // loop removes display none from matching elements
       for (let i = 0; i < list.length; i++) {
          if (i >= fromItem && i < toItem) {
             list[i].style.display = '';
@@ -112,15 +136,12 @@ const showPage = (list, currentPage) => {
 };
 
 
-
-
-
 /**
-* 3. Append Page Links
+* 5. Append Page Links
 * - Attaches pagination functionality to the page.
 *     - list = object of list elements
 */
-const appendPageLinks = (list) => {
+const appendPageLinks = list => {
    /**
    * Create Pagination Item
    * - Builds markup for li and a elements
@@ -134,13 +155,17 @@ const appendPageLinks = (list) => {
       const li = createElement('li', parent);
 
       // A
-      const a = createElement('a', li, {
+      const a = createElement('a', li, false, {
          textContent: index,
          href: '#',
          className: (defaultPage === index) ? 'active' : ''
       });
    };
 
+   /**
+   * Trigger Page
+   * - executes a page switch
+   */
    const triggerPage = event => {
       
       // prevent page reload
@@ -163,13 +188,13 @@ const appendPageLinks = (list) => {
       showPage(list, page);
    }
 
-   // Remove Pagination
-   if (document.contains( document.querySelector('.pagination') ) ) {
+   // Removes pagination wrapper if it already exists.
+   if ( document.contains( document.querySelector('.pagination') ) ) {
       document.querySelector('.pagination').remove();
    }
 
-   // Create Pagination wrapper and add it to the appWrapper
-   const paginationWrapper = createElement('div', appWrapper, {
+   // Create pagination wrapper and add it to the appWrapper
+   const paginationWrapper = createElement('div', appWrapper, false, {
       className: 'pagination'
    });
 
@@ -193,20 +218,21 @@ const appendPageLinks = (list) => {
 
 
 /**
-* 4. Append Search
-* Research from:
-* https://stackoverflow.com/a/1909490
+* 6. Append Search
+*     - Research from:
+*        A. Keycode for enter https://stackoverflow.com/a/1909490
 */
 const appendSearch = () => {
-   const searchWrapper = createElement('div', pageHeader, {
+   // Setup our html elements
+   const searchWrapper = createElement('div', pageHeader, false, {
       className: 'student-search'
    });
-   const searchInput = createElement('input', searchWrapper, {
+   const searchInput = createElement('input', searchWrapper, false, {
       placeholder: 'Search for students...'
    });
-   const searchButton = createElement('button', searchWrapper);
-   searchButton.textContent = 'Search';
+   const searchButton = createElement('button', searchWrapper, 'Search');
 
+   // A
    let globalTimeout = null; 
 
    const triggerSearch = () => {
@@ -231,22 +257,27 @@ const appendSearch = () => {
       appendPageLinks(searchList);
    };
 
-   //https://keycode.info/
-
+   // Trigger for when user is typing
    searchWrapper.addEventListener('keyup', e => {
-      if (e.keyCode === 13) { 
+      // A
+      // Listen for when someone pressed enter and execute right away
+      if (e.keyCode === 13) {
          triggerSearch();
-      } else {
+      } 
+      
+      // Otherwise wait .3 seconds before executing code.
+      // This prevents from code running too many times
+      else {
          if (globalTimeout != null) {
             clearTimeout(globalTimeout);
          }
-
          globalTimeout = setTimeout(() => {
             triggerSearch();
          }, 300);
       }
    });
 
+   // Trigger for search button
    searchButton.addEventListener('click', () => {
       triggerSearch();
    });
@@ -254,8 +285,9 @@ const appendSearch = () => {
 
 
 /**
-* 5. Run our program on page load
+* 7. Run our program on page load
 */
+buildNoResults();
 showPage(listOriginal, defaultPage);
 appendPageLinks(listOriginal);
 appendSearch();

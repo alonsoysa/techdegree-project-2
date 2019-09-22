@@ -33,33 +33,9 @@ const itemsPerPage = 10;
 // using let because I plan on making this dynamic in the future.
 let defaultPage = 1; 
 let searchList = [];
+let noResults;
 
 
-/**
-* 1. Show Page
-*     - Shows the active list items and hides the rest
-*     - list = object
-*     - currentPage = integer
-*/
-const hideList = () => {
-   for (let i = 0; i < listOriginal.length; i++) {
-      listOriginal[i].style.display = 'none';
-   }
-};
-const showPage = (list, currentPage) => {
-   // Define where to start and end the pagination
-   const toItem = currentPage * itemsPerPage; 
-   const fromItem = toItem - itemsPerPage;
-   
-   hideList();
-
-   // Toggles display
-   for (let i = 0; i < list.length; i++) {
-      if (i >= fromItem && i < toItem) {
-         list[i].style.display = '';
-      }
-   }
-};
 
 
 /**
@@ -92,6 +68,53 @@ const createElement = (elementName, appendTo, properties) => {
 };
 
 
+const buildNoResults= () => {
+   noResults = createElement('div', appWrapper, {
+      className: 'no-results'
+   });
+   noResults.style.display = 'none';
+   const heading = createElement('h2', noResults);
+   heading.textContent = 'No Results';
+};
+
+buildNoResults();
+
+/**
+* 1. Show Page
+*     - Shows the active list items and hides the rest
+*     - list = object
+*     - currentPage = integer
+*/
+const hideList = () => {
+   for (let i = 0; i < listOriginal.length; i++) {
+      listOriginal[i].style.display = 'none';
+   }
+};
+const showPage = (list, currentPage) => {
+   // Define where to start and end the pagination
+   const toItem = currentPage * itemsPerPage; 
+   const fromItem = toItem - itemsPerPage;
+   
+   hideList();
+
+   if( list.length === 0) {
+      noResults.style.display = '';
+   }else {
+      // Toggles display
+      noResults.style.display = 'none';
+
+      for (let i = 0; i < list.length; i++) {
+         if (i >= fromItem && i < toItem) {
+            list[i].style.display = '';
+         }
+      }
+   }
+};
+
+
+
+
+
 /**
 * 3. Append Page Links
 * - Attaches pagination functionality to the page.
@@ -118,6 +141,28 @@ const appendPageLinks = (list) => {
       });
    };
 
+   const triggerPage = event => {
+      
+      // prevent page reload
+      event.preventDefault();
+
+      // select future old active link
+      const activePagination = document.querySelector('.active');
+
+      // select new link element
+      const link = event.target;
+      const page = link.textContent;
+
+      // remove old active link
+      activePagination.classList.remove('active');
+
+      // add active class to new link
+      link.classList.add('active');
+
+      // display the new page
+      showPage(list, page);
+   }
+
    // Remove Pagination
    if (document.contains( document.querySelector('.pagination') ) ) {
       document.querySelector('.pagination').remove();
@@ -139,29 +184,10 @@ const appendPageLinks = (list) => {
 
    // paginationWrapper triggers
    paginationWrapper.addEventListener('click', (e) => {
-
       // link trigger
       if( e.target.tagName === 'A' ){
-         // prevent page reload
-         e.preventDefault();
-
-         // select future old active link
-         const activePagination = document.querySelector('.active');
-         
-         // select new link element
-         const link = e.target; 
-         const page = link.textContent;
-
-         // remove old active link
-         activePagination.classList.remove('active');
-
-         // add active class to new link
-         link.classList.add('active');
-         
-         // display the new page
-         showPage(list, page );
+         triggerPage(e);
       }
-      
    });
 };
 
@@ -183,32 +209,46 @@ const appendSearch = () => {
 
    let globalTimeout = null; 
 
-   searchWrapper.addEventListener('keyup', e => {
-      if (globalTimeout != null) {
-         clearTimeout(globalTimeout);
+   const triggerSearch = () => {
+      globalTimeout = null;
+
+      let searchText = searchInput.value;
+
+      // clear array
+      searchList.length = 0;
+
+      for (let i = 0; i < names.length; i++) {
+         let keyword = searchInput.value;
+         let studentName = names[i].textContent;
+
+         if (studentName.includes(keyword)) {
+            let li = names[i].parentNode.parentNode;
+            searchList.push(li);
+         }
       }
 
-      globalTimeout = setTimeout( () => { 
-         globalTimeout = null;
-         let searchText = searchInput.value;
+      showPage(searchList, defaultPage);
+      appendPageLinks(searchList);
+   };
 
-         // clear array
-         searchList.length = 0;
+   //https://keycode.info/
 
-         for (let i = 0; i < names.length; i++) {
-            let keyword = searchInput.value;
-            let studentName = names[i].textContent;
-
-            if (studentName.includes(keyword)) {
-               let li = names[i].parentNode.parentNode;
-               searchList.push(li);
-            }
+   searchWrapper.addEventListener('keyup', e => {
+      if (e.keyCode === 13) { 
+         triggerSearch();
+      } else {
+         if (globalTimeout != null) {
+            clearTimeout(globalTimeout);
          }
 
-         showPage(searchList, defaultPage);
-         appendPageLinks(searchList);
-         console.log('finished search');
-      }, 1000);
+         globalTimeout = setTimeout(() => {
+            triggerSearch();
+         }, 300);
+      }
+   });
+
+   searchButton.addEventListener('click', () => {
+      triggerSearch();
    });
 };
 

@@ -273,7 +273,7 @@ const appendSearch = () => {
          }
          globalTimeout = setTimeout(() => {
             triggerSearch();
-         }, 300);
+         }, 750);
       }
    });
 

@@ -98,6 +98,7 @@ const hideList = () => {
 *     - Shows the active list items and hides the rest
 *     - list = object
 *     - currentPage = integer
+*     - name = string for the searched name (optional)
 */
 const showPage = (list, currentPage, name) => {
    // first hide all lists items
@@ -111,8 +112,9 @@ const showPage = (list, currentPage, name) => {
    const fromItem = toItem - itemsPerPage;
 
    // If no results, display the no results div
+   const keyword = name ? name : '';
    if( list.length === 0) {
-      buildNoResults(name);
+      buildNoResults(keyword);
    } else {
       // loop removes display none from matching elements
       for (let i = 0; i < list.length; i++) {

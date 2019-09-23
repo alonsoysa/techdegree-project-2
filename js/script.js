@@ -17,15 +17,20 @@ To do list:
       [C] Pagination links display based on how many search results are returned. For example: if 10 or fewer results are returned, 0 or 1 pagination links are displayed. If 22 search results are returned, 3 pagination links are displayed.
       [C] When a search yields 0 results, a message is displayed on the page, informing the user that no results have been found.
 
+   Bonus
+      [C] Display the search term when no results are found
+      [C] Add a clear search button
+
 
 0. Global variables
 1. Create Element
-2. Build no results
-3. Hide List
-4. Show Page
-5. Append Page Links
-6. Append Search
-7. Run our program on page load
+2. Hide List
+3. Show Page
+4. Build no results
+5. Remove no results
+6. Append Page Links
+7. Append Search
+8. Run our program on page load
 
 ******************************************/
 
@@ -37,11 +42,8 @@ const pageHeader = document.querySelector('.page-header');
 const listOriginal = document.querySelectorAll('.student-list > li');
 const names = document.querySelectorAll('.student-list > li h3');
 const itemsPerPage = 10;
-
-// using let because I plan on making this dynamic in the future.
-let defaultPage = 1; 
+const defaultPage = 1; 
 let searchList = [];
-let noResults;
 
 
 /**
@@ -81,21 +83,7 @@ const createElement = (elementName, appendTo, textContent, properties) => {
 
 
 /**
-* 2. Build no results
-*     - Markup for when no results are available
-*/
-const buildNoResults= () => {
-   noResults = createElement('div', appWrapper, false, {
-      className: 'no-results'
-   });
-   noResults.style.display = 'none';
-
-   const heading = createElement('h2', noResults, 'No Results');
-};
-
-
-/**
-* 3. Hide List
+* 2. Hide List
 *     - Hides every list item by default
 */
 const hideList = () => {
@@ -106,14 +94,17 @@ const hideList = () => {
 
 
 /**
-* 4. Show Page
+* 3. Show Page
 *     - Shows the active list items and hides the rest
 *     - list = object
 *     - currentPage = integer
 */
-const showPage = (list, currentPage) => {
+const showPage = (list, currentPage, name) => {
    // first hide all lists items
    hideList();
+
+   // remove no results if is there
+   removeNoResults();
 
    // Define where to start and end the pagination
    const toItem = currentPage * itemsPerPage; 
@@ -121,11 +112,8 @@ const showPage = (list, currentPage) => {
 
    // If no results, display the no results div
    if( list.length === 0) {
-      noResults.style.display = '';
+      buildNoResults(name);
    } else {
-      // hide no results div
-      noResults.style.display = 'none';
-
       // loop removes display none from matching elements
       for (let i = 0; i < list.length; i++) {
          if (i >= fromItem && i < toItem) {
@@ -137,7 +125,59 @@ const showPage = (list, currentPage) => {
 
 
 /**
-* 5. Append Page Links
+* 4. Build no results
+*     - Markup for when no results are available
+*     - name = the current search string (optional)
+*/
+const buildNoResults = name => {
+   let customName = 'No Results';
+
+   if (name) {
+      customName += ' for ' + name;
+   }
+
+   // easter egg
+   if (name === 'harry potter') {
+      customName = 'Harry Potter is on board without a ticket!'
+   }
+
+   const noResults = createElement('div', appWrapper, false, {
+      className: 'no-results'
+   });
+
+   const heading = createElement('h2', noResults, customName);
+
+   // add a clear selection button
+   const clear = createElement('a', noResults, 'Clear Search', {
+      className: 'clear-btn',
+      href: '#'
+   });
+   clear.addEventListener('click', (e) => {
+      e.preventDefault();
+
+      const search = document.querySelector('.student-search input');
+      const button = document.querySelector('.student-search button');
+
+      search.value = '';
+
+      // triggers a click
+      button.click();
+   });
+};
+
+/**
+* 5. Remove no results
+*     - Removes the no results div
+*/
+const removeNoResults = () => {
+   if (document.contains(document.querySelector('.no-results'))) {
+      document.querySelector('.no-results').remove();
+   }
+};
+
+
+/**
+* 6. Append Page Links
 * - Attaches pagination functionality to the page.
 *     - list = object of list elements
 */
@@ -218,7 +258,7 @@ const appendPageLinks = list => {
 
 
 /**
-* 6. Append Search
+* 7. Append Search
 *     - Research from:
 *        A. Keycode for enter https://stackoverflow.com/a/1909490
 */
@@ -228,7 +268,7 @@ const appendSearch = () => {
       className: 'student-search'
    });
    const searchInput = createElement('input', searchWrapper, false, {
-      placeholder: 'Search for students...'
+      placeholder: 'Search for passengers...'
    });
    const searchButton = createElement('button', searchWrapper, 'Search');
 
@@ -236,15 +276,18 @@ const appendSearch = () => {
    let globalTimeout = null; 
 
    const triggerSearch = () => {
+      // clear time
       globalTimeout = null;
 
-      let searchText = searchInput.value;
-
-      // clear array
+      // we need a lowercase input to match our names
+      let keyword = searchInput.value.toLowerCase();
+      
+      // clear global search list array
+      // learned this trick from Emma W!
       searchList.length = 0;
 
+      // Pushes any matching names to global array searchList
       for (let i = 0; i < names.length; i++) {
-         let keyword = searchInput.value;
          let studentName = names[i].textContent;
 
          if (studentName.includes(keyword)) {
@@ -253,7 +296,7 @@ const appendSearch = () => {
          }
       }
 
-      showPage(searchList, defaultPage);
+      showPage(searchList, defaultPage, keyword);
       appendPageLinks(searchList);
    };
 
@@ -285,9 +328,8 @@ const appendSearch = () => {
 
 
 /**
-* 7. Run our program on page load
+* 8. Run our program on page load
 */
-buildNoResults();
 showPage(listOriginal, defaultPage);
 appendPageLinks(listOriginal);
 appendSearch();

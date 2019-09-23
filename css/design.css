@@ -21,21 +21,23 @@ body{
   /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
 
 }
-body::before {
-  content: "";
-  display: block;
-  width: 30%;
-  background: url(../img/christian-wagner-2_mKndNWB58-unsplash.jpg) 30% center / cover;
+@media screen and (min-width:768px) {
+  body::before {
+    content: "";
+    display: block;
+    width: 30%;
+    background: url(../img/christian-wagner-2_mKndNWB58-unsplash.jpg) 30% center / cover;
+  }
 }
 
 .no-results {
   width: 100%;
   background: #f4f4f4;
   position: relative;
-  height: 400px;
-  padding: 25px;
+  padding: 50px 25px;
   align-items: center;
   justify-content: center;
+  text-align: center;
 }
 .no-results::before {
   content: "";
@@ -47,6 +49,30 @@ body::before {
   border: 1px dashed #ccc;
   border-radius: 2px;
   z-index: 10;
+}
+
+.no-results h2 {
+  font-size: 24px;
+  font-weight: bold;
+  color: #231f20;
+  text-transform: capitalize;
+  font-family: 'Crimson Text', serif;
+  position: relative;
+  z-index: 20;
+}
+
+.clear-btn {
+  position: relative;
+  z-index: 20;
+  display: inline-block;
+  border: 2px solid #231f20;
+  padding: 12px 12px 8px 12px;
+  text-decoration: none;
+  border-radius: 2px;
+  margin-top: 30px;
+  color: #231f20;
+  font-weight: 700;
+  font-family: 'Crimson Text', serif;
 }
 
 .page{

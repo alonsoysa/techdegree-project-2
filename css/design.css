@@ -52,12 +52,9 @@ body::before {
 .page{
   margin: auto;
   padding: 50px;
-  display: flex;
-  flex-wrap: wrap;
   overflow: auto;
   height: 100%;
   flex: 1;
-  /* background: url(../img/paper.png) repeat left top / 280px 280px; */
 }
 
 .page-header{
@@ -78,13 +75,9 @@ body::before {
   .page-header .student-search{
     border-radius: 2px;
     overflow: hidden;
-    border: 6px solid #dc932c;
-    /* border-style: solid;
-    border-image: linear-gradient(30deg, #d49255 0%, #f8ca5b 50%, #dc932c 100%);
-    border-image-slice: 1; */
+    border: 4px solid #dc932c;
     background: #f4f4f4;
     position: relative;
-    /* border-width: 6px; */
   }
 
     .page-header .student-search input{
@@ -105,20 +98,26 @@ body::before {
 
     .page-header .student-search button{
       font-size: 18px;
-      background-color: #4ba6c3;
+      border: 0;
+      border-left: 4px solid  #dc932c;
+      background: #eae2a4;
       color: #fff;
       position: absolute;
       right: 0;
       top: 0;
       height: 100%;
       width: 64px;
-      text-indent: -999em;
       overflow: hidden;
-      border: 0;
+      font-size: 14px;
+      color: #231f20;
+      font-family: 'Crimson Text', serif;
+      font-weight: 700;
+      cursor: pointer;
     }
 
 .student-list{
-  flex: 1;
+  width: calc(100% - 78px);
+  float: left;
 }
 
   .student-item {
@@ -212,6 +211,7 @@ body::before {
  
 
 .pagination {
+  float: left;
   width: 78px;
   padding-left: 30px;
   text-align: center;
